@@ -19,12 +19,16 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private readonly Vector liikeOikealle = new Vector(100, 0);
     public override void Begin()
     {
-        // Kirjoita ohjelmakoodisi tähän
+        
         Camera.ZoomToLevel(20);
         LuoKentta();
         PhysicsObject hahmo = LisaaHahmo(this, Level.Left + 100, Level.Bottom + 100);
 
-        HahmonOhjaus(hahmo);
+        //HahmonOhjaus(hahmo);
+        Keyboard.Listen(Key.D, ButtonState.Down, Liiku, "Hahmo liikkuu oikealle", this, hahmo, liikeOikealle);
+        Keyboard.Listen(Key.D, ButtonState.Released, Liiku, null, this, hahmo, Vector.Zero);
+        Keyboard.Listen(Key.A, ButtonState.Down, Liiku, "Hahmo liikkuu vasemmalle", this, hahmo, liikeVasemmalle);
+        Keyboard.Listen(Key.A, ButtonState.Released, Liiku, null, this, hahmo, Vector.Zero);
         
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
     }
@@ -51,13 +55,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     }
     
     
-    private void HahmonOhjaus(PhysicsObject hahmo)
-    {
-        Keyboard.Listen(Key.A, ButtonState.Down, Liiku, "Hahmo liikkuu vasemmalle", this, hahmo, liikeVasemmalle);
-        Keyboard.Listen(Key.A, ButtonState.Up, Liiku, null, this, hahmo, Vector.Zero);
-        Keyboard.Listen(Key.D, ButtonState.Down, Liiku, "Hahmo liikkuu oikealle", this, hahmo, liikeOikealle);
-        Keyboard.Listen(Key.D, ButtonState.Up, Liiku, null, this, hahmo, Vector.Zero);
-    }
+    // private void HahmonOhjaus(PhysicsObject hahmo)
+    // {
+    //    
+    // }
 
 
     public static void Liiku(PhysicsGame peli, PhysicsObject hahmo, Vector nopeus)
