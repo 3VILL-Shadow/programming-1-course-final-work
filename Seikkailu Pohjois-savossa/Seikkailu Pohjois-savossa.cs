@@ -16,7 +16,8 @@ namespace Seikkailu_Pohjois_savossa;
 public class Seikkailu_Pohjois_savossa : PhysicsGame
 {
     private const double KAVELY = 200;
-    private const double HYPPY = 1000;
+    private const double HYPPY = 500;
+    private PlatformCharacter hahmo;
     
     public override void Begin()
     {
@@ -24,9 +25,9 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         Camera.ZoomToLevel(20);
         LuoKentta();
         Gravity = new Vector(0.0, -981.0);
-        Vector sijainti = new Vector(Level.Left + 100, Level.Bottom + 100);
-        LisaaHahmo(sijainti, 71, 226);
-
+        
+        LisaaHahmo(new Vector(Level.Left + 100, Level.Bottom + 100),71, 226);
+        LuoVaakuna(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 74, 85);
         HahmonOhjaus();
         
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
@@ -36,52 +37,55 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         Surface alareuna = Surface.CreateBottom(Level);
         alareuna.Position = new Vector(0, Level.Bottom);
+        Level.CreateBorders();
         Add(alareuna);
     }
     
     private void LisaaHahmo(Vector paikka, double leveys, double korkeus)
     {
-        PlatformCharacter hahmo = new PlatformCharacter(leveys, korkeus);
+        hahmo = new PlatformCharacter(leveys, korkeus);
         hahmo.Position = paikka;
         hahmo.Mass = 4.0;
         hahmo.Image = LoadImage("hahmo");
-        //AddCollisionHandler(pelaaja1, "tahti", TormaaTahteen);
+        AddCollisionHandler(hahmo, "vaakuna", TormaaVaakunaan);
         Add(hahmo);
     }
-    // private LisaaHahmo(PhysicsGame peli, double x, double y)
-    // {
-    //     PlatformCharacter hahmo = new PlatformCharacter(71, 226);
-    //     hahmo.Shape = Shape.Rectangle;
-    //     hahmo.Position = new Vector(x, y);
-    //     hahmo.Tag = "hahmo";
-    //     Image hahmonkuva = LoadImage("hahmo"); //Pelaajan kuva
-    //     hahmo.Image = hahmonkuva; 
-    //     peli.Add(hahmo);
-    //     //return hahmo;
-    // }
+    
+    
+    private void LuoVaakuna(Vector paikka, double leveys, double korkeus)
+    {
+        PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(leveys, korkeus);
+        vaakuna.IgnoresCollisionResponse = true;
+        vaakuna.Position = paikka;
+        vaakuna.Image = LoadImage("vaakuna");
+        vaakuna.Tag = "vaakuna";
+        Add(vaakuna);
+    }
+    
+    
+    private void TormaaVaakunaan(PhysicsObject pelaaja, PhysicsObject vaakuna)
+    {
+        vaakuna.Destroy();
+    }
     
     
     private void HahmonOhjaus()
     {
         Keyboard.Listen(Key.D, ButtonState.Down, Liiku, "Hahmo liikkuu oikealle",hahmo, KAVELY);
-        Keyboard.Listen(Key.D, ButtonState.Released, Liiku, null, this, hahmo, Vector.Zero);
         Keyboard.Listen(Key.A, ButtonState.Down, Liiku, "Hahmo liikkuu vasemmalle", hahmo, -KAVELY);
-        Keyboard.Listen(Key.A, ButtonState.Released, Liiku, null, this, hahmo, Vector.Zero);
         Keyboard.Listen(Key.W,ButtonState.Pressed, Hyppy, "Hahmo hyppää", hahmo,HYPPY);
-        Keyboard.Listen(Key.W,ButtonState.Released, Hyppy, null, this, hahmo, Vector.Zero);
         Keyboard.Listen(Key.Space,ButtonState.Pressed, Hyppy, "Hahmo hyppää", hahmo,HYPPY);
-        Keyboard.Listen(Key.Space,ButtonState.Released, Hyppy, null, this, hahmo, Vector.Zero);
     }
 
 
-    private void Liiku(PlatformCharacter hahmo, double nopeus)
+    private void Liiku(PlatformCharacter pelaaja, double nopeus)
     {
-        hahmo.Walk(nopeus);
+        pelaaja.Walk(nopeus);
     }
 
-    private void Hyppy(PlatformCharacter hahmo, double nopeus)
+    private void Hyppy(PlatformCharacter pelaaja, double nopeus)
     {
-        hahmo.Jump(nopeus);
+        pelaaja.Jump(nopeus);
     }
 
 
