@@ -16,10 +16,10 @@ namespace Seikkailu_Pohjois_savossa;
 /// </summary>
 public class Seikkailu_Pohjois_savossa : PhysicsGame
 {
-    private const double KAVELY = 200;
-    private const double HYPPY = 500;
-    private PlatformCharacter hahmo;
-    private IntMeter pistelaskuri;
+    private const double Kavely = 200;
+    private const double Hyppy = 500;
+    private PlatformCharacter _hahmo;
+    private IntMeter _pistelaskuri;
     
     public override void Begin()
     {
@@ -59,14 +59,14 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">hahmon korkeus</param>
     private void LisaaHahmo(Vector paikka, double leveys, double korkeus)
     {
-        hahmo = new PlatformCharacter(leveys, korkeus); //tehdään hahmosta PlatformCharacter
-        hahmo.Position = paikka;
-        hahmo.Mass = 4.0;
-        hahmo.Image = LoadImage("hahmo"); //hahmon kuva tiedosto
-        AddCollisionHandler(hahmo, "vaakuna", TormaaVaakunaan); //lisätään CollisionHandler hahmon ja vaakunan välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä 
-        AddCollisionHandler(hahmo, "kalakukko", TormaaKalakukkoon); //lisätään CollisionHandler hahmon ja kalakukon välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä ja elämäpisteitä
-        AddCollisionHandler(hahmo, "piikki", TormaaPiikkiin); //lisätään CollisionHandler hahmon ja piikin välille, jotta saadaan vähennettyä hahmon elämäpisteitä ja lopetettua peli, mikäli elämäpisteett loppuvat
-        Add(hahmo);
+        _hahmo = new PlatformCharacter(leveys, korkeus); //tehdään hahmosta PlatformCharacter
+        _hahmo.Position = paikka;
+        _hahmo.Mass = 4.0;
+        _hahmo.Image = LoadImage("hahmo"); //hahmon kuva tiedosto
+        AddCollisionHandler(_hahmo, "vaakuna", TormaaVaakunaan); //lisätään CollisionHandler hahmon ja vaakunan välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä 
+        AddCollisionHandler(_hahmo, "kalakukko", TormaaKalakukkoon); //lisätään CollisionHandler hahmon ja kalakukon välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä ja elämäpisteitä
+        AddCollisionHandler(_hahmo, "piikki", TormaaPiikkiin); //lisätään CollisionHandler hahmon ja piikin välille, jotta saadaan vähennettyä hahmon elämäpisteitä ja lopetettua peli, mikäli elämäpisteett loppuvat
+        Add(_hahmo);
     }
     
     
@@ -129,7 +129,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void TormaaVaakunaan(PhysicsObject pelaaja, PhysicsObject vaakuna)
     {
         vaakuna.Destroy();
-        pistelaskuri.Value += 1;
+        _pistelaskuri.Value += 1;
     }
     
     
@@ -141,7 +141,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void TormaaKalakukkoon(PhysicsObject pelaaja, PhysicsObject kalakukko)
     {
         kalakukko.Destroy();
-        pistelaskuri.Value += 5;
+        _pistelaskuri.Value += 5;
     } 
     
     /// <summary>
@@ -158,13 +158,13 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
 
     void LisaaPistelaskuri()
     {
-        pistelaskuri = new IntMeter(0);
+        _pistelaskuri = new IntMeter(0);
         Label pistenaytto = new Label();
         pistenaytto.Position = new Vector(0, Level.Top - 100);
         pistenaytto.TextColor = Color.Black;
         pistenaytto.Color = Color.White;
         
-        pistenaytto.BindTo(pistelaskuri);
+        pistenaytto.BindTo(_pistelaskuri);
         pistenaytto.Title = "Pisteet: ";
         Add(pistenaytto);
     }
@@ -175,10 +175,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// </summary>
     private void HahmonOhjaus()
     {
-        Keyboard.Listen(Key.D, ButtonState.Down, Liiku, "Hahmo liikkuu oikealle",hahmo, KAVELY);
-        Keyboard.Listen(Key.A, ButtonState.Down, Liiku, "Hahmo liikkuu vasemmalle", hahmo, -KAVELY);
-        Keyboard.Listen(Key.W,ButtonState.Pressed, Hyppy, "Hahmo hyppää", hahmo,HYPPY);
-        Keyboard.Listen(Key.Space,ButtonState.Pressed, Hyppy, "Hahmo hyppää", hahmo,HYPPY);
+        Keyboard.Listen(Key.D, ButtonState.Down, Liiku, "Hahmo liikkuu oikealle",_hahmo, Kavely);
+        Keyboard.Listen(Key.A, ButtonState.Down, Liiku, "Hahmo liikkuu vasemmalle", _hahmo, -Kavely);
+        Keyboard.Listen(Key.W,ButtonState.Pressed, Hyppaa, "Hahmo hyppää", _hahmo,Hyppy);
+        Keyboard.Listen(Key.Space,ButtonState.Pressed, Hyppaa, "Hahmo hyppää", _hahmo,Hyppy);
         
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
         Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä näppäimet");
@@ -201,7 +201,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// </summary>
     /// <param name="pelaaja">hahmo joka hyppää</param>
     /// <param name="hyppyVoima">voima jolla hahmo hyppää</param>
-    private void Hyppy(PlatformCharacter pelaaja, double hyppyVoima)
+    private void Hyppaa(PlatformCharacter pelaaja, double hyppyVoima)
     {
         pelaaja.Jump(hyppyVoima);
     }
