@@ -5,6 +5,7 @@ using Jypeli;
 using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Widgets;
+using static Jypeli.Color;
 
 namespace Seikkailu_Pohjois_savossa;
 
@@ -20,18 +21,19 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private const double Hyppy = 500;
     private PlatformCharacter _hahmo;
     private IntMeter _pistelaskuri;
+    private const int RuudunKoko = 40;
     
     public override void Begin()
     {
         
-        Camera.ZoomToLevel(20);
+        Camera.ZoomToLevel(600);
         LuoKentta();
         Gravity = new Vector(0.0, -981.0);
         
         LisaaHahmo(new Vector(Level.Left + 10, Level.Bottom + 100),71, 226);
-        LuoVaakuna(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 74, 85);
-        LuoPiikki(RandomGen.NextVector(Level.Left + 100, Level.Bottom + 75, Level.Right, Level.Bottom + 75), 50, 50);
-        LuoKalakukko(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 128, 60);
+        // LuoVaakuna(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 74, 85);
+        // LuoPiikki(RandomGen.NextVector(Level.Left + 100, Level.Bottom + 75, Level.Right, Level.Bottom + 75), 50, 50);
+        // LuoKalakukko(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 128, 60);
 
         LisaaPistelaskuri();
         HahmonOhjaus();
@@ -39,15 +41,16 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     }
 
     
-    /// <summary>
-    /// Luodaan kenttään maa jonka päällä hahmo liikkuu
-    /// </summary>
-    void LuoKentta()
+    private void LuoKentta()
     {
-        Surface alareuna = Surface.CreateBottom(Level);
-        alareuna.Position = new Vector(0, Level.Bottom);
-        //Level.CreateBorders();
-        Add(alareuna);
+        TileMap kentta = TileMap.FromLevelAsset("kentta_1");
+        kentta.SetTileMethod('#', LuoTaso);
+        kentta.SetTileMethod('V', LuoVaakuna);
+        kentta.SetTileMethod('K', LuoKalakukko);
+        kentta.SetTileMethod('P', LuoPiikki);
+        //kentta.Optimize('#');
+        kentta.Execute(RuudunKoko, RuudunKoko);
+        Level.CreateBorders(false);
     }
     
     
@@ -113,11 +116,25 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys, korkeus); //lisätään uusi physics object joka on myös staattinen, jotta piikit saadaan pysymään paikallaan
         piikki.Shape = Shape.Triangle;
-        piikki.Color = Color.Black;
+        piikki.Color = Black;
         piikki.IgnoresCollisionResponse = false;
         piikki.Position = paikka;
         piikki.Tag = "piikki";
         Add(piikki);
+    }
+    
+    /// <summary>
+    /// Luodaan taso joita saadaan tehtyä maa ja tasot joilta hypitään toisille tasoille
+    /// </summary>
+    /// <param name="paikka">Tason paikka</param>
+    /// <param name="leveys">Tason leveys</param>
+    /// <param name="korkeus">Tason korkeus</param>
+    private void LuoTaso(Vector paikka, double leveys, double korkeus)
+    {
+        PhysicsObject taso = PhysicsObject.CreateStaticObject(leveys, korkeus);
+        taso.Position = paikka;
+        taso.Color = Green;
+        Add(taso);
     }
     
     
@@ -161,8 +178,8 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         _pistelaskuri = new IntMeter(0);
         Label pistenaytto = new Label();
         pistenaytto.Position = new Vector(0, Level.Top - 100);
-        pistenaytto.TextColor = Color.Black;
-        pistenaytto.Color = Color.White;
+        pistenaytto.TextColor = Black;
+        pistenaytto.Color = White;
         
         pistenaytto.BindTo(_pistelaskuri);
         pistenaytto.Title = "Pisteet: ";
