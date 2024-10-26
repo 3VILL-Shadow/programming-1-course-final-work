@@ -22,6 +22,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private PlatformCharacter _hahmo;
     private IntMeter _pistelaskuri;
     private const int RuudunKoko = 40;
+    private readonly Image [] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
+    private readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
+    private readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
+    private readonly Image HahmonTippuminen =LoadImage( "hahmo_walk_0");
     
     public override void Begin()
     {
@@ -63,9 +67,16 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void LisaaHahmo(Vector paikka, double leveys, double korkeus)
     {
         _hahmo = new PlatformCharacter(leveys, korkeus); //tehdään hahmosta PlatformCharacter
+        _hahmo.AnimWalk = new Animation(HahmonKavely); //hahmon kävely animaatio
+        _hahmo.AnimIdle = new Animation(HahmonPaikallaanolo); //hahmon paikallaan oli animaatio
+        _hahmo.AnimJump = new Animation(HahmonHyppy); //hahmon hyppy animaatio
+        _hahmo.AnimFall = new Animation(HahmonTippuminen); //hahmon laskeutumis animaatio
+        _hahmo.AnimWalk.Start();
+        _hahmo.LoopJumpAnim = false;
+        _hahmo.AnimWalk.FPS = 10;
         _hahmo.Position = paikka;
         _hahmo.Mass = 4.0;
-        _hahmo.Image = LoadImage("hahmo"); //hahmon kuva tiedosto
+        //_hahmo.Image = LoadImage("hahmo_walk_0"); //hahmon kuva tiedosto
         AddCollisionHandler(_hahmo, "vaakuna", TormaaVaakunaan); //lisätään CollisionHandler hahmon ja vaakunan välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä 
         AddCollisionHandler(_hahmo, "kalakukko", TormaaKalakukkoon); //lisätään CollisionHandler hahmon ja kalakukon välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä ja elämäpisteitä
         AddCollisionHandler(_hahmo, "piikki", TormaaPiikkiin); //lisätään CollisionHandler hahmon ja piikin välille, jotta saadaan vähennettyä hahmon elämäpisteitä ja lopetettua peli, mikäli elämäpisteett loppuvat
