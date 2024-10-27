@@ -21,17 +21,17 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private const double Hyppy = 500;
     private PlatformCharacter _hahmo;
     private IntMeter _pistelaskuri;
+    private IntMeter _elamaPistelaskuri;
     private const int RuudunKoko = 40;
     private readonly Image [] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
     private readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
     private readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
-    private readonly Image HahmonTippuminen =LoadImage( "hahmo_walk_0");
+    //private readonly Image HahmonTippuminen =LoadImage( "hahmo_walk_0");
     
     public override void Begin()
     {
-        
-        Camera.ZoomToLevel(600);
         LuoKentta();
+        Camera.ZoomToLevel();
         Gravity = new Vector(0.0, -981.0);
         
         LisaaHahmo(new Vector(Level.Left + 10, Level.Bottom + 100),71, 226);
@@ -40,6 +40,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         // LuoKalakukko(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 128, 60);
 
         LisaaPistelaskuri();
+        LisaaElamaPistelaskuri();
         HahmonOhjaus();
         
     }
@@ -70,7 +71,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         _hahmo.AnimWalk = new Animation(HahmonKavely); //hahmon kävely animaatio
         _hahmo.AnimIdle = new Animation(HahmonPaikallaanolo); //hahmon paikallaan oli animaatio
         _hahmo.AnimJump = new Animation(HahmonHyppy); //hahmon hyppy animaatio
-        _hahmo.AnimFall = new Animation(HahmonTippuminen); //hahmon laskeutumis animaatio
+        //_hahmo.AnimFall = new Animation(HahmonTippuminen); //hahmon laskeutumis animaatio
         _hahmo.AnimWalk.Start();
         _hahmo.LoopJumpAnim = false;
         _hahmo.AnimWalk.FPS = 10;
@@ -170,31 +171,67 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         kalakukko.Destroy();
         _pistelaskuri.Value += 5;
+        if (_elamaPistelaskuri.Value < 5)
+        {
+            _elamaPistelaskuri.Value += 1;
+        }
     } 
     
     /// <summary>
-    /// vähennetään hahmon elämäpisteitä ja lopetetaan peli, mikäli elämäpisteett loppuvat
+    /// Vähennetään hahmon elämäpisteitä ja lopetetaan peli, mikäli elämäpisteett loppuvat
     /// </summary>
     /// <param name="pelaaja">hahmo jota liikutellaan</param>
     /// <param name="piikki">kalakukko joka kerätään</param>
     private void TormaaPiikkiin(PhysicsObject pelaaja, PhysicsObject piikki)
     {
-        pelaaja.Destroy();
-        MessageDisplay.Add("Hävisit pelin");
+        //pelaaja.Destroy();
+        _elamaPistelaskuri.Value -= 1;
+        if (_elamaPistelaskuri.Value == 0)
+        {
+            Havisit();
+        }
     }
 
-
+    /// <summary>
+    /// Laskuri joka näytää paljonko pelaajalla on pisteitä 
+    /// </summary>
     void LisaaPistelaskuri()
     {
         _pistelaskuri = new IntMeter(0);
         Label pistenaytto = new Label();
-        pistenaytto.Position = new Vector(0, Level.Top - 100);
+        pistenaytto.Position = new Vector(0, Screen.Top - 100);
         pistenaytto.TextColor = Black;
         pistenaytto.Color = White;
         
         pistenaytto.BindTo(_pistelaskuri);
         pistenaytto.Title = "Pisteet: ";
         Add(pistenaytto);
+    }
+    
+    /// <summary>
+    /// Laskuri joka näyttää paljonko pelaajalla on elämäpisteitä
+    /// </summary>
+    void LisaaElamaPistelaskuri()
+    {
+        _elamaPistelaskuri = new IntMeter(5, 0, 5);
+        Label elamapistenaytto = new Label();
+        elamapistenaytto.Position = new Vector(Screen.Right - 300, Screen.Top - 100);
+        elamapistenaytto.TextColor = Black;
+        elamapistenaytto.Color = White;
+        
+        elamapistenaytto.BindTo(_elamaPistelaskuri);
+        elamapistenaytto.Title = "Elämä pisteet: ";
+        Add(elamapistenaytto);
+    }
+
+
+    /// <summary>
+    /// Kerrotaan pelaajan hävinneen jos elämäpisteet loppuvat
+    /// </summary>
+    void Havisit()
+    {
+        IsPaused = true;
+        MessageDisplay.Add("Hävisit pelin");
     }
 
 
