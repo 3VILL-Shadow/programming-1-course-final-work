@@ -93,7 +93,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">vaakunan korkeus</param>
     private void LuoVaakuna(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(leveys, korkeus); //lisätään uusi physics object joka on myös staattinen, jotta vaakunat saadaan pysymään paikallaan
+        PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(74, 85); //lisätään uusi physics object joka on myös staattinen, jotta vaakunat saadaan pysymään paikallaan
         vaakuna.IgnoresCollisionResponse = true;
         vaakuna.Position = paikka;
         vaakuna.Image = LoadImage("vaakuna"); //vaakunan kuva tiedosto
@@ -110,7 +110,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">kalakukon korkeus</param>
     private void LuoKalakukko(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject kalakukko = PhysicsObject.CreateStaticObject(leveys, korkeus); //lisätään uusi physics object joka on myös staattinen, jotta kalakukot saadaan pysymään paikallaan
+        PhysicsObject kalakukko = PhysicsObject.CreateStaticObject(128, 60); //lisätään uusi physics object joka on myös staattinen, jotta kalakukot saadaan pysymään paikallaan
         kalakukko.IgnoresCollisionResponse = true;
         kalakukko.Position = paikka;
         kalakukko.Image = LoadImage("kalakukko"); //kalakukon kuva tiedosto
