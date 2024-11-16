@@ -5,12 +5,13 @@ using Jypeli;
 using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Widgets;
+using static Jypeli.ButtonState;
 using static Jypeli.Color;
 
 namespace Seikkailu_Pohjois_savossa;
 
 /// @author ville
-/// @version 13.10.2024
+/// @version 16.11.2024
 /// <summary>
 /// Peli, jossa ukkeli seikkailee Pohjois-Savossa ja keräilee vaakunoita ja kalakukkoja
 /// samalla väistellen piikkejä
@@ -226,27 +227,17 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
 
 
     /// <summary>
-    /// Kerrotaan pelaajan hävinneen jos elämäpisteet loppuvat
-    /// </summary>
-    void Havisit()
-    {
-        IsPaused = true;
-        MessageDisplay.Add("Hävisit pelin");
-    }
-
-
-    /// <summary>
     /// Näppäinkomennot
     /// </summary>
     private void HahmonOhjaus()
     {
-        Keyboard.Listen(Key.D, ButtonState.Down, Liiku, "Hahmo liikkuu oikealle",_hahmo, Kavely);
-        Keyboard.Listen(Key.A, ButtonState.Down, Liiku, "Hahmo liikkuu vasemmalle", _hahmo, -Kavely);
-        Keyboard.Listen(Key.W,ButtonState.Pressed, Hyppaa, "Hahmo hyppää", _hahmo,Hyppy);
-        Keyboard.Listen(Key.Space,ButtonState.Pressed, Hyppaa, "Hahmo hyppää", _hahmo,Hyppy);
+        Keyboard.Listen(Key.D, Down, Liiku, "Hahmo liikkuu oikealle",_hahmo, Kavely);
+        Keyboard.Listen(Key.A, Down, Liiku, "Hahmo liikkuu vasemmalle", _hahmo, -Kavely);
+        Keyboard.Listen(Key.W,Pressed, Hyppaa, "Hahmo hyppää", _hahmo,Hyppy);
+        Keyboard.Listen(Key.Space,Pressed, Hyppaa, "Hahmo hyppää", _hahmo,Hyppy);
         
-        Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
-        Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä näppäimet");
+        Keyboard.Listen(Key.Escape, Pressed, ConfirmExit, "Lopeta peli");
+        Keyboard.Listen(Key.F1, Pressed, ShowControlHelp, "Näytä näppäimet");
     }
 
     
@@ -272,6 +263,13 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     }
 
 
-    
+    /// <summary>
+    /// Kerrotaan pelaajan hävinneen jos elämäpisteet loppuvat
+    /// </summary>
+    void Havisit()
+    {
+        IsPaused = true;
+        MessageDisplay.Add("Hävisit pelin");
+    }
     
 }
