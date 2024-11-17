@@ -5,13 +5,15 @@ using Jypeli;
 using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Widgets;
+using Silk.NET.GLFW;
 using static Jypeli.ButtonState;
 using static Jypeli.Color;
+using Image = Jypeli.Image;
 
 namespace Seikkailu_Pohjois_savossa;
 
 /// @author ville
-/// @version 16.11.2024
+/// @version 17.11.2024
 /// <summary>
 /// Peli, jossa ukkeli seikkailee Pohjois-Savossa ja keräilee vaakunoita ja kalakukkoja
 /// samalla väistellen piikkejä
@@ -19,41 +21,45 @@ namespace Seikkailu_Pohjois_savossa;
 public class Seikkailu_Pohjois_savossa : PhysicsGame
 {
     private const double Kavely = 200;
-    private const double Hyppy = 500;
+    private const double Hyppy = 600;
     private PlatformCharacter _hahmo;
-    private IntMeter _pistelaskuri;
-    private IntMeter _elamaPistelaskuri;
-    private const int RuudunKoko = 40;
+    private IntMeter _Pistelaskuri;
+    private IntMeter _ElamaPistelaskuri;
+    private const int RuudunKoko = 50;
     private readonly Image [] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
     private readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
     private readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
-    //private readonly Image HahmonTippuminen =LoadImage( "hahmo_walk_0");
+    
     
     public override void Begin()
     {
         LuoKentta();
-        Camera.ZoomToLevel();
+
+        Camera.X = 0;
+        Camera.Y = 100;
+        Camera.Zoom(0.25);
         Gravity = new Vector(0.0, -981.0);
         
-        LisaaHahmo(new Vector(Level.Left + 10, Level.Bottom + 100),71, 226);
-        // LuoVaakuna(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 74, 85);
-        // LuoPiikki(RandomGen.NextVector(Level.Left + 100, Level.Bottom + 75, Level.Right, Level.Bottom + 75), 50, 50);
-        // LuoKalakukko(RandomGen.NextVector(Level.Left, Level.Bottom + 100, Level.Right, Level.Bottom + 400), 128, 60);
-
         LisaaPistelaskuri();
         LisaaElamaPistelaskuri();
         HahmonOhjaus();
         
-    }
+        // TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
 
+    }
     
+    
+    /// <summary>
+    /// Luodaan kenttä valmiista tiedostosta
+    /// </summary>
     private void LuoKentta()
     {
-        TileMap kentta = TileMap.FromLevelAsset("kentta_1");
+        TileMap kentta = TileMap.FromLevelAsset("Kentta_1");
         kentta.SetTileMethod('#', LuoTaso);
         kentta.SetTileMethod('V', LuoVaakuna);
         kentta.SetTileMethod('K', LuoKalakukko);
         kentta.SetTileMethod('P', LuoPiikki);
+        kentta.SetTileMethod('H', LisaaHahmo);
         //kentta.Optimize('#');
         kentta.Execute(RuudunKoko, RuudunKoko);
         Level.CreateBorders(false);
@@ -68,7 +74,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">hahmon korkeus</param>
     private void LisaaHahmo(Vector paikka, double leveys, double korkeus)
     {
-        _hahmo = new PlatformCharacter(leveys, korkeus); //tehdään hahmosta PlatformCharacter
+        _hahmo = new PlatformCharacter(71, 226); //tehdään hahmosta PlatformCharacter
         _hahmo.AnimWalk = new Animation(HahmonKavely); //hahmon kävely animaatio
         _hahmo.AnimIdle = new Animation(HahmonPaikallaanolo); //hahmon paikallaan oli animaatio
         _hahmo.AnimJump = new Animation(HahmonHyppy); //hahmon hyppy animaatio
@@ -94,7 +100,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">vaakunan korkeus</param>
     private void LuoVaakuna(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(74, 85); //lisätään uusi physics object joka on myös staattinen, jotta vaakunat saadaan pysymään paikallaan
+        PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(49, 56); //lisätään uusi physics object joka on myös staattinen, jotta vaakunat saadaan pysymään paikallaan
         vaakuna.IgnoresCollisionResponse = true;
         vaakuna.Position = paikka;
         vaakuna.Image = LoadImage("vaakuna"); //vaakunan kuva tiedosto
@@ -111,7 +117,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">kalakukon korkeus</param>
     private void LuoKalakukko(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject kalakukko = PhysicsObject.CreateStaticObject(128, 60); //lisätään uusi physics object joka on myös staattinen, jotta kalakukot saadaan pysymään paikallaan
+        PhysicsObject kalakukko = PhysicsObject.CreateStaticObject(68, 32); //lisätään uusi physics object joka on myös staattinen, jotta kalakukot saadaan pysymään paikallaan
         kalakukko.IgnoresCollisionResponse = true;
         kalakukko.Position = paikka;
         kalakukko.Image = LoadImage("kalakukko"); //kalakukon kuva tiedosto
@@ -159,7 +165,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void TormaaVaakunaan(PhysicsObject pelaaja, PhysicsObject vaakuna)
     {
         vaakuna.Destroy();
-        _pistelaskuri.Value += 1;
+        _Pistelaskuri.Value += 1;
     }
     
     
@@ -171,10 +177,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void TormaaKalakukkoon(PhysicsObject pelaaja, PhysicsObject kalakukko)
     {
         kalakukko.Destroy();
-        _pistelaskuri.Value += 5;
-        if (_elamaPistelaskuri.Value < 5)
+        _Pistelaskuri.Value += 5;
+        if (_ElamaPistelaskuri.Value < 5)
         {
-            _elamaPistelaskuri.Value += 1;
+            _ElamaPistelaskuri.Value += 1;
         }
     } 
     
@@ -186,8 +192,8 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void TormaaPiikkiin(PhysicsObject pelaaja, PhysicsObject piikki)
     {
         //pelaaja.Destroy();
-        _elamaPistelaskuri.Value -= 1;
-        if (_elamaPistelaskuri.Value == 0)
+        _ElamaPistelaskuri.Value -= 1;
+        if (_ElamaPistelaskuri.Value == 0)
         {
             Havisit();
         }
@@ -198,13 +204,13 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// </summary>
     void LisaaPistelaskuri()
     {
-        _pistelaskuri = new IntMeter(0);
+        _Pistelaskuri = new IntMeter(0);
         Label pistenaytto = new Label();
         pistenaytto.Position = new Vector(0, Screen.Top - 100);
         pistenaytto.TextColor = Black;
         pistenaytto.Color = White;
         
-        pistenaytto.BindTo(_pistelaskuri);
+        pistenaytto.BindTo(_Pistelaskuri);
         pistenaytto.Title = "Pisteet: ";
         Add(pistenaytto);
     }
@@ -214,13 +220,13 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// </summary>
     void LisaaElamaPistelaskuri()
     {
-        _elamaPistelaskuri = new IntMeter(5, 0, 5);
+        _ElamaPistelaskuri = new IntMeter(5, 0, 5);
         Label elamapistenaytto = new Label();
         elamapistenaytto.Position = new Vector(Screen.Right - 300, Screen.Top - 100);
         elamapistenaytto.TextColor = Black;
         elamapistenaytto.Color = White;
         
-        elamapistenaytto.BindTo(_elamaPistelaskuri);
+        elamapistenaytto.BindTo(_ElamaPistelaskuri);
         elamapistenaytto.Title = "Elämä pisteet: ";
         Add(elamapistenaytto);
     }

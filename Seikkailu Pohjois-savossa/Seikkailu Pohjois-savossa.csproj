@@ -30,7 +30,7 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="Content\Kentta_1.txt">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Content\hahmo_walk_0.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
