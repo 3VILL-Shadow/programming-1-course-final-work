@@ -21,7 +21,7 @@ namespace Seikkailu_Pohjois_savossa;
 public class Seikkailu_Pohjois_savossa : PhysicsGame
 {
     private const double Kavely = 200;
-    private const double Hyppy = 600;
+    private const double Hyppy = 800;
     private PlatformCharacter _hahmo;
     private IntMeter _Pistelaskuri;
     private IntMeter _ElamaPistelaskuri;
@@ -35,9 +35,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         LuoKentta();
 
-        Camera.X = 0;
-        Camera.Y = 100;
-        Camera.Zoom(0.25);
+        // Camera.X = 0;
+        // Camera.Y = 100;
+        // Camera.Zoom(0.25);
+        Camera.ZoomToLevel();
         Gravity = new Vector(0.0, -981.0);
         
         LisaaPistelaskuri();
@@ -45,7 +46,6 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         HahmonOhjaus();
         
         // TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
-
     }
     
     
@@ -60,7 +60,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         kentta.SetTileMethod('K', LuoKalakukko);
         kentta.SetTileMethod('P', LuoPiikki);
         kentta.SetTileMethod('H', LisaaHahmo);
-        //kentta.Optimize('#');
+        kentta.Optimize('#');
         kentta.Execute(RuudunKoko, RuudunKoko);
         Level.CreateBorders(false);
     }
@@ -78,13 +78,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         _hahmo.AnimWalk = new Animation(HahmonKavely); //hahmon kävely animaatio
         _hahmo.AnimIdle = new Animation(HahmonPaikallaanolo); //hahmon paikallaan oli animaatio
         _hahmo.AnimJump = new Animation(HahmonHyppy); //hahmon hyppy animaatio
-        //_hahmo.AnimFall = new Animation(HahmonTippuminen); //hahmon laskeutumis animaatio
-        _hahmo.AnimWalk.Start();
         _hahmo.LoopJumpAnim = false;
         _hahmo.AnimWalk.FPS = 10;
         _hahmo.Position = paikka;
         _hahmo.Mass = 4.0;
-        //_hahmo.Image = LoadImage("hahmo_walk_0"); //hahmon kuva tiedosto
         AddCollisionHandler(_hahmo, "vaakuna", TormaaVaakunaan); //lisätään CollisionHandler hahmon ja vaakunan välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä 
         AddCollisionHandler(_hahmo, "kalakukko", TormaaKalakukkoon); //lisätään CollisionHandler hahmon ja kalakukon välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä ja elämäpisteitä
         AddCollisionHandler(_hahmo, "piikki", TormaaPiikkiin); //lisätään CollisionHandler hahmon ja piikin välille, jotta saadaan vähennettyä hahmon elämäpisteitä ja lopetettua peli, mikäli elämäpisteett loppuvat
@@ -276,6 +273,8 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         IsPaused = true;
         MessageDisplay.Add("Hävisit pelin");
+        ClearControls();
+        Keyboard.Listen(Key.Escape, Pressed, ConfirmExit, "Lopeta peli");
     }
     
 }
