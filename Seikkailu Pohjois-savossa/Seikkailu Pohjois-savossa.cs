@@ -1,11 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Net;
 using Jypeli;
-using Jypeli.Assets;
-using Jypeli.Controls;
-using Jypeli.Widgets;
-using Silk.NET.GLFW;
 using static Jypeli.ButtonState;
 using static Jypeli.Color;
 using Image = Jypeli.Image;
@@ -26,45 +20,63 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private IntMeter _Pistelaskuri;
     private IntMeter _ElamaPistelaskuri;
     private const int RuudunKoko = 50;
-    private readonly Image [] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
+    private readonly Image[] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
     private readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
     private readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
+    private int _KentanNro = 1;
     
     
     public override void Begin()
     {
-        LuoKentta();
-
-        // Camera.X = 0;
-        // Camera.Y = 100;
-        // Camera.Zoom(0.25);
-        Camera.ZoomToLevel();
+        IsPaused = false;
+        Kentta();
+        
+        Camera.ZoomToAllObjects(-866);
+        SetWindowSize(1075, 770, false);
         Gravity = new Vector(0.0, -981.0);
+        
+        // TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
+    }
+
+
+
+    /// <summary>
+    /// Valitaan kenttä kenttä listauksesta ja luodaan uusi kentta kun on törmätty maaliin
+    /// </summary>
+    private void Kentta()
+    {
+        ClearGameObjects();
+
+        if (_KentanNro > 2)
+        { 
+            MessageDisplay.Add("Voitit kaikki tasot");
+            ConfirmExit();
+        }
+        LuoKentta($"Kentta_{_KentanNro}");
         
         LisaaPistelaskuri();
         LisaaElamaPistelaskuri();
         HahmonOhjaus();
         
-        // TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
     }
-    
     
     /// <summary>
     /// Luodaan kenttä valmiista tiedostosta
     /// </summary>
-    private void LuoKentta()
+    private void LuoKentta(string kentanTiedosto)
     {
-        TileMap kentta = TileMap.FromLevelAsset("Kentta_1");
+        TileMap kentta = TileMap.FromLevelAsset(kentanTiedosto);
         kentta.SetTileMethod('#', LuoTaso);
         kentta.SetTileMethod('V', LuoVaakuna);
         kentta.SetTileMethod('K', LuoKalakukko);
         kentta.SetTileMethod('P', LuoPiikki);
         kentta.SetTileMethod('H', LisaaHahmo);
+        kentta.SetTileMethod('M', LisaaMaali);
         kentta.Optimize('#');
         kentta.Execute(RuudunKoko, RuudunKoko);
         Level.CreateBorders(false);
     }
-    
+      
     
     /// <summary>
     /// Lisätään hahmo peliin vasempaan ala nurkaan
@@ -85,6 +97,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         AddCollisionHandler(_hahmo, "vaakuna", TormaaVaakunaan); //lisätään CollisionHandler hahmon ja vaakunan välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä 
         AddCollisionHandler(_hahmo, "kalakukko", TormaaKalakukkoon); //lisätään CollisionHandler hahmon ja kalakukon välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä ja elämäpisteitä
         AddCollisionHandler(_hahmo, "piikki", TormaaPiikkiin); //lisätään CollisionHandler hahmon ja piikin välille, jotta saadaan vähennettyä hahmon elämäpisteitä ja lopetettua peli, mikäli elämäpisteett loppuvat
+        AddCollisionHandler(_hahmo, "maali", TormaaMaaliin); //lisätään CollisionHandler hahmon ja maalin välille, jotta päästään siirtymään seuraavaan tasoon
         Add(_hahmo);
     }
     
@@ -97,7 +110,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">vaakunan korkeus</param>
     private void LuoVaakuna(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(49, 56); //lisätään uusi physics object joka on myös staattinen, jotta vaakunat saadaan pysymään paikallaan
+        PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(73.5, 84); //lisätään uusi physics object joka on myös staattinen, jotta vaakunat saadaan pysymään paikallaan
         vaakuna.IgnoresCollisionResponse = true;
         vaakuna.Position = paikka;
         vaakuna.Image = LoadImage("vaakuna"); //vaakunan kuva tiedosto
@@ -114,7 +127,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <param name="korkeus">kalakukon korkeus</param>
     private void LuoKalakukko(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject kalakukko = PhysicsObject.CreateStaticObject(68, 32); //lisätään uusi physics object joka on myös staattinen, jotta kalakukot saadaan pysymään paikallaan
+        PhysicsObject kalakukko = PhysicsObject.CreateStaticObject(102, 48); //lisätään uusi physics object joka on myös staattinen, jotta kalakukot saadaan pysymään paikallaan
         kalakukko.IgnoresCollisionResponse = true;
         kalakukko.Position = paikka;
         kalakukko.Image = LoadImage("kalakukko"); //kalakukon kuva tiedosto
@@ -155,6 +168,23 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     
     
     /// <summary>
+    /// Luodaan maali johon törmätessä siirrytään seuraavaan tasoon
+    /// </summary>
+    /// <param name="paikka">Maalin paikka</param>
+    /// <param name="leveys">Maalin leveys</param>
+    /// <param name="korkeus">Maalin korkeus</param>
+    private void LisaaMaali(Vector paikka, double leveys, double korkeus)
+    {
+        PhysicsObject maali = PhysicsObject.CreateStaticObject(65, 177);
+        maali.IgnoresCollisionResponse = true;
+        maali.Position = paikka;
+        maali.Image = LoadImage("maali");
+        maali.Tag = "maali";
+        Add(maali);
+    }
+    
+    
+    /// <summary>
     /// Poistetaan vaakuna kun siihen osutaan ja kasvatetaan pistemäärää
     /// </summary>
     /// <param name="pelaaja">hahmo jota liikutellaan</param>
@@ -185,15 +215,24 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// Vähennetään hahmon elämäpisteitä ja lopetetaan peli, mikäli elämäpisteett loppuvat
     /// </summary>
     /// <param name="pelaaja">hahmo jota liikutellaan</param>
-    /// <param name="piikki">kalakukko joka kerätään</param>
+    /// <param name="piikki">Piikki jota pitää varoa</param>
     private void TormaaPiikkiin(PhysicsObject pelaaja, PhysicsObject piikki)
     {
-        //pelaaja.Destroy();
         _ElamaPistelaskuri.Value -= 1;
         if (_ElamaPistelaskuri.Value == 0)
         {
             Havisit();
         }
+    }
+    /// <summary>
+    /// Kasvatetaan muuttujan _KentanIndeksi arvoa jotta päästään seuraavaan tasoon
+    /// </summary>
+    /// <param name="pelaaja">hahmo jota liikutellaan</param>
+    /// <param name="maali">maali josta törmäämisen jälkeen päästään seuraavaan tasoon</param>
+    private void TormaaMaaliin(PhysicsObject pelaaja, PhysicsObject maali)
+    {
+        _KentanNro++;
+        Kentta();
     }
 
     /// <summary>
@@ -203,7 +242,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         _Pistelaskuri = new IntMeter(0);
         Label pistenaytto = new Label();
-        pistenaytto.Position = new Vector(0, Screen.Top - 100);
+        pistenaytto.Position = new Vector(0, Screen.Top - 40);
         pistenaytto.TextColor = Black;
         pistenaytto.Color = White;
         
@@ -219,7 +258,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         _ElamaPistelaskuri = new IntMeter(5, 0, 5);
         Label elamapistenaytto = new Label();
-        elamapistenaytto.Position = new Vector(Screen.Right - 300, Screen.Top - 100);
+        elamapistenaytto.Position = new Vector(Screen.Right - 100, Screen.Top - 40);
         elamapistenaytto.TextColor = Black;
         elamapistenaytto.Color = White;
         
@@ -267,14 +306,30 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
 
 
     /// <summary>
+    /// Mikäli pelaaja kuolee hän voi aloittaa pelin uudesta ilman pelin uudelleen käynnistämistä
+    /// </summary>
+    void AloitaAlusta()
+    {
+        ClearGameObjects();
+        Begin();
+    }
+
+
+    /// <summary>
     /// Kerrotaan pelaajan hävinneen jos elämäpisteet loppuvat
     /// </summary>
     void Havisit()
     {
+        _hahmo.Destroy();
         IsPaused = true;
-        MessageDisplay.Add("Hävisit pelin");
+        MessageDisplay.Add("Kuolit, voit aloittaa pelin alusta painamalla 'R' näppäintä");
         ClearControls();
         Keyboard.Listen(Key.Escape, Pressed, ConfirmExit, "Lopeta peli");
+
+        if (IsPaused)
+        { 
+            Keyboard.Listen(Key.R,Pressed, AloitaAlusta, "Aloita peli alusta");
+        }
     }
     
 }
