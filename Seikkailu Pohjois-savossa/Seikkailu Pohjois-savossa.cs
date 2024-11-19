@@ -1,4 +1,3 @@
-using System;
 using Jypeli;
 using static Jypeli.ButtonState;
 using static Jypeli.Color;
@@ -7,7 +6,7 @@ using Image = Jypeli.Image;
 namespace Seikkailu_Pohjois_savossa;
 
 /// @author ville
-/// @version 17.11.2024
+/// @version 19.11.2024
 /// <summary>
 /// Peli, jossa ukkeli seikkailee Pohjois-Savossa ja keräilee vaakunoita ja kalakukkoja
 /// samalla väistellen piikkejä
@@ -23,13 +22,14 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private readonly Image[] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
     private readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
     private readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
-    private int _KentanNro = 1;
+    private int _KentanNro = 2;
     
     
     public override void Begin()
     {
         IsPaused = false;
         Kentta();
+
         
         Camera.ZoomToAllObjects(-866);
         SetWindowSize(1075, 770, false);
@@ -47,11 +47,6 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         ClearGameObjects();
 
-        if (_KentanNro > 2)
-        { 
-            MessageDisplay.Add("Voitit kaikki tasot");
-            ConfirmExit();
-        }
         LuoKentta($"Kentta_{_KentanNro}");
         
         LisaaPistelaskuri();
@@ -72,6 +67,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         kentta.SetTileMethod('P', LuoPiikki);
         kentta.SetTileMethod('H', LisaaHahmo);
         kentta.SetTileMethod('M', LisaaMaali);
+        kentta.SetTileMethod('W', LisaaViimeinenMaali);
         kentta.Optimize('#');
         kentta.Execute(RuudunKoko, RuudunKoko);
         Level.CreateBorders(false);
@@ -98,6 +94,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         AddCollisionHandler(_hahmo, "kalakukko", TormaaKalakukkoon); //lisätään CollisionHandler hahmon ja kalakukon välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä ja elämäpisteitä
         AddCollisionHandler(_hahmo, "piikki", TormaaPiikkiin); //lisätään CollisionHandler hahmon ja piikin välille, jotta saadaan vähennettyä hahmon elämäpisteitä ja lopetettua peli, mikäli elämäpisteett loppuvat
         AddCollisionHandler(_hahmo, "maali", TormaaMaaliin); //lisätään CollisionHandler hahmon ja maalin välille, jotta päästään siirtymään seuraavaan tasoon
+        AddCollisionHandler(_hahmo, "viimeinenMaali", TormaaViimeiseenMaaliin); //lisätään CollisionHandler hahmon ja maalin välille, jotta päästään siirtymään seuraavaan tasoon
         Add(_hahmo);
     }
     
@@ -182,7 +179,22 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         maali.Tag = "maali";
         Add(maali);
     }
-    
+
+    /// <summary>
+    /// Luodaan maali johon törmätessä lopetetaan peli
+    /// </summary>
+    /// <param name="paikka">viimeisen maalin paikka</param>
+    /// <param name="leveys">viimeisen maalin leveys</param>
+    /// <param name="korkeus">viimeisen maalin korkeus</param>
+    private void LisaaViimeinenMaali(Vector paikka, double leveys, double korkeus)
+    {
+        PhysicsObject viimeinenMaali = PhysicsObject.CreateStaticObject(65, 177);
+        viimeinenMaali.IgnoresExplosions = true;
+        viimeinenMaali.Position = paikka;
+        viimeinenMaali.Image = LoadImage("maali");
+        viimeinenMaali.Tag = "viimeinenMaali";
+        Add(viimeinenMaali);
+    }
     
     /// <summary>
     /// Poistetaan vaakuna kun siihen osutaan ja kasvatetaan pistemäärää
@@ -235,6 +247,18 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         Kentta();
     }
 
+    /// <summary>
+    /// Kun on päästy viimeisen tason maaliin, niin pysäytetään peli ja kerrotaan pelaajan voittaneen peli
+    /// </summary>
+    /// <param name="pelaaja">hahmo jota liikutellaan</param>
+    /// <param name="maali">maali johon törmättyään pelaajalle kerrotaan hänen voittaneensa peli</param>
+    private void TormaaViimeiseenMaaliin(PhysicsObject pelaaja, PhysicsObject maali)
+    {
+        IsPaused = true;
+        MessageDisplay.Add("Voiti pelin kaikki tasot! Voit nyt olla onnellinen!");
+    }
+    
+    
     /// <summary>
     /// Laskuri joka näytää paljonko pelaajalla on pisteitä 
     /// </summary>
