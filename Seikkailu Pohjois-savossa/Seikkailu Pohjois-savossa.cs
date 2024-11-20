@@ -7,28 +7,34 @@ using Image = Jypeli.Image;
 namespace Seikkailu_Pohjois_savossa;
 
 /// @author ville
-/// @version 19.11.2024
+/// @version 20.11.2024
 /// <summary>
 /// Peli, jossa ukkeli seikkailee Pohjois-Savossa ja keräilee vaakunoita ja kalakukkoja
 /// samalla väistellen piikkejä
+/// TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
 /// </summary>
 public class Seikkailu_Pohjois_savossa : PhysicsGame
 {
     private const double Kavely = 200;
     private const double Hyppy = 800;
     private PlatformCharacter _hahmo;
-    private IntMeter _Pistelaskuri;
-    private IntMeter _ElamaPistelaskuri;
-    private int _Elamapisteet = 5;
-    private const int RuudunKoko = 50;
     private readonly Image[] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
     private readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
     private readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
+    
+    private IntMeter _Pistelaskuri;
+    private IntMeter _ElamaPistelaskuri;
+    private int _Elamapisteet = 5;
+    private int _Pisteet;
+    
+    private const int RuudunKoko = 50;
     private int _KentanNro = 1;
     private readonly List<Key> _Nappaimet = [];
     private bool _PeliKaynnissa;
     
-    
+    /// <summary>
+    /// Luodaan kenttä ja tehdään määritykset kameralle
+    /// </summary>
     public override void Begin()
     {
         Kentta();
@@ -36,9 +42,6 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         
         Camera.ZoomToAllObjects(-1250);
         IsFullScreen = true;
-        Gravity = new Vector(0.0, -981.0);
-        
-        // TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
     }
 
 
@@ -51,11 +54,11 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         ClearGameObjects();
 
         LuoKentta($"Kentta_{_KentanNro}");
+        Gravity = new Vector(0.0, -981.0);
         
         LisaaPistelaskuri();
         LisaaElamaPistelaskuri();
         HahmonOhjaus();
-        
     }
     
     /// <summary>
@@ -77,7 +80,9 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         Level.CreateBorders(false);
     }
 
-
+    /// <summary>
+    /// Käynnistetään peli ja kerrotaan pelaajalle pelin tavoite
+    /// </summary>
     private void KaynnistaPeli()
     {
         if (!_PeliKaynnissa)
@@ -85,6 +90,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
             _PeliKaynnissa = true;
             IsPaused = false;
             MessageDisplay.Add("Kerää kaikki vaakunat ja pääse maaliin, mutta varo piikkejä");
+            ShowControlHelp();
         }
     }
       
@@ -98,18 +104,22 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void LisaaHahmo(Vector paikka, double leveys, double korkeus)
     {
         _hahmo = new PlatformCharacter(71, 226); //tehdään hahmosta PlatformCharacter
+        
         _hahmo.AnimWalk = new Animation(HahmonKavely); //hahmon kävely animaatio
         _hahmo.AnimIdle = new Animation(HahmonPaikallaanolo); //hahmon paikallaan oli animaatio
         _hahmo.AnimJump = new Animation(HahmonHyppy); //hahmon hyppy animaatio
         _hahmo.LoopJumpAnim = false;
         _hahmo.AnimWalk.FPS = 10;
+        
         _hahmo.Position = paikka;
         _hahmo.Mass = 4.0;
+        
         AddCollisionHandler(_hahmo, "vaakuna", TormaaVaakunaan); //lisätään CollisionHandler hahmon ja vaakunan välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä 
         AddCollisionHandler(_hahmo, "kalakukko", TormaaKalakukkoon); //lisätään CollisionHandler hahmon ja kalakukon välille, jotta saadaan poistettua vaakuna ja kasvatettua pisteitä ja elämäpisteitä
         AddCollisionHandler(_hahmo, "piikki", TormaaPiikkiin); //lisätään CollisionHandler hahmon ja piikin välille, jotta saadaan vähennettyä hahmon elämäpisteitä ja lopetettua peli, mikäli elämäpisteett loppuvat
         AddCollisionHandler(_hahmo, "maali", TormaaMaaliin); //lisätään CollisionHandler hahmon ja maalin välille, jotta päästään siirtymään seuraavaan tasoon
         AddCollisionHandler(_hahmo, "viimeinenMaali", TormaaViimeiseenMaaliin); //lisätään CollisionHandler hahmon ja maalin välille, jotta päästään siirtymään seuraavaan tasoon
+        
         Add(_hahmo);
     }
     
@@ -247,7 +257,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         kalakukko.Destroy();
         _Pistelaskuri.Value += 5;
-        if (_ElamaPistelaskuri.Value < 5)
+        if (_ElamaPistelaskuri.Value < _ElamaPistelaskuri.MaxValue)
         {
             _ElamaPistelaskuri.Value += 1;
         }
@@ -275,6 +285,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     {
         _KentanNro++;
         _Elamapisteet = _ElamaPistelaskuri.Value;
+        _Pisteet = _Pistelaskuri.Value;
         Kentta();
     }
 
@@ -295,9 +306,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <summary>
     /// Laskuri joka näytää paljonko pelaajalla on pisteitä 
     /// </summary>
-    void LisaaPistelaskuri()
+    private void LisaaPistelaskuri()
     {
-        _Pistelaskuri = new IntMeter(0);
+        _Pistelaskuri = new IntMeter(_Pisteet);
+        
         Label pistenaytto = new Label();
         pistenaytto.Position = new Vector(0, Screen.Top - 40);
         pistenaytto.TextColor = Black;
@@ -311,9 +323,10 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <summary>
     /// Laskuri joka näyttää paljonko pelaajalla on elämäpisteitä
     /// </summary>
-    void LisaaElamaPistelaskuri()
+    private void LisaaElamaPistelaskuri()
     {
         _ElamaPistelaskuri = new IntMeter(_Elamapisteet, 0, 5);
+        
         Label elamapistenaytto = new Label();
         elamapistenaytto.Position = new Vector(Screen.Right - 100, Screen.Top - 40);
         elamapistenaytto.TextColor = Black;
@@ -345,7 +358,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
 
         foreach (Key nappain in _Nappaimet)
         {
-            Keyboard.Listen(nappain, Pressed, KaynnistaPeli, "Aloita peli");
+            Keyboard.Listen(nappain, Pressed, KaynnistaPeli, null);
         }
     }
 
@@ -355,7 +368,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// </summary>
     /// <param name="pelaaja">hahmo jota liikutellaan</param>
     /// <param name="nopeus">nopeus jolla hahmo liikkuu</param>
-    private void Liiku(PlatformCharacter pelaaja, double nopeus)
+    private static void Liiku(PlatformCharacter pelaaja, double nopeus)
     {
         pelaaja.Walk(nopeus);
     }
@@ -366,7 +379,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// </summary>
     /// <param name="pelaaja">hahmo joka hyppää</param>
     /// <param name="hyppyVoima">voima jolla hahmo hyppää</param>
-    private void Hyppaa(PlatformCharacter pelaaja, double hyppyVoima)
+    private static void Hyppaa(PlatformCharacter pelaaja, double hyppyVoima)
     {
         pelaaja.Jump(hyppyVoima);
     }
@@ -375,10 +388,11 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <summary>
     /// Mikäli pelaaja kuolee hän voi aloittaa pelin uudesta ilman pelin uudelleen käynnistämistä
     /// </summary>
-    void AloitaAlusta()
+    private void AloitaAlusta()
     {
         _PeliKaynnissa = false;
         ClearGameObjects();
+        ClearControls();
         Begin();
     }
 
@@ -386,18 +400,19 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     /// <summary>
     /// Kerrotaan pelaajan hävinneen jos elämäpisteet loppuvat
     /// </summary>
-    void Havisit()
+    private void Havisit()
     {
         MessageDisplay.Add("Kuolit, voit aloittaa pelin alusta painamalla R näppäintä");
         _hahmo.Destroy();
         IsPaused = true;
+        _PeliKaynnissa = false;
         ClearControls();
         Keyboard.Listen(Key.Escape, Pressed, ConfirmExit, "Lopeta peli");
-
-        if (IsPaused)
+        if (_PeliKaynnissa == false)
         { 
             Keyboard.Listen(Key.R,Pressed, AloitaAlusta, "Aloita peli alusta");
         }
     }
+    
     
 }
