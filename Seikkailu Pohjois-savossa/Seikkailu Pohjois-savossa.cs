@@ -11,16 +11,16 @@ namespace Seikkailu_Pohjois_savossa;
 /// <summary>
 /// Peli, jossa ukkeli seikkailee Pohjois-Savossa ja keräilee vaakunoita ja kalakukkoja
 /// samalla väistellen piikkejä
-/// TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
+/// TODO: silmukka, ks: https://tim.jyu.fi/view/kur,ssit/tie/ohj1/v/2024/syksy/demot/demo9#poistapisin
 /// </summary>
 public class Seikkailu_Pohjois_savossa : PhysicsGame
 {
     private const double Kavely = 200;
     private const double Hyppy = 800;
     private PlatformCharacter _hahmo;
-    private readonly Image[] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
-    private readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
-    private readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
+    private static readonly Image[] HahmonKavely =LoadImages("hahmo_walk_0", "hahmo_walk_1", "hahmo_walk_2", "hahmo_walk_3","hahmo_walk_0");
+    private static readonly Image HahmonPaikallaanolo =LoadImage( "hahmo_walk_0");
+    private static readonly Image HahmonHyppy =LoadImage( "hahmo_jump");
     
     private IntMeter _Pistelaskuri;
     private IntMeter _ElamaPistelaskuri;
@@ -29,7 +29,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     
     private const int RuudunKoko = 50;
     private int _KentanNro = 1;
-    private readonly List<Key> _Nappaimet = [];
+    private static readonly List<Key> _Nappaimet = [];
     private bool _PeliKaynnissa;
     
     /// <summary>
@@ -44,8 +44,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         IsFullScreen = true;
     }
 
-
-
+    
     /// <summary>
     /// Valitaan kenttä kenttä listauksesta ja luodaan uusi kentta kun on törmätty maaliin
     /// </summary>
@@ -60,6 +59,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         LisaaElamaPistelaskuri();
         HahmonOhjaus();
     }
+    
     
     /// <summary>
     /// Luodaan kenttä valmiista tiedostosta
@@ -80,6 +80,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         Level.CreateBorders(false);
     }
 
+    
     /// <summary>
     /// Käynnistetään peli ja kerrotaan pelaajalle pelin tavoite
     /// </summary>
@@ -123,7 +124,17 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         Add(_hahmo);
     }
     
+
     
+    private static Vector LuoKarttaObjekti(PhysicsObject karttaObjekti, Vector paikka)
+    {
+        karttaObjekti.Position = paikka;
+
+        return karttaObjekti.Position;
+    }
+        
+        
+        
     /// <summary>
     /// Luodaan vaakuna
     /// </summary>
@@ -133,8 +144,8 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void LuoVaakuna(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject vaakuna = PhysicsObject.CreateStaticObject(73.5, 84); //lisätään uusi physics object joka on myös staattinen, jotta vaakunat saadaan pysymään paikallaan
+        LuoKarttaObjekti(vaakuna, paikka);
         vaakuna.IgnoresCollisionResponse = true;
-        vaakuna.Position = paikka;
         vaakuna.Image = LoadImage("vaakuna"); //vaakunan kuva tiedosto
         vaakuna.Tag = "vaakuna";
         Add(vaakuna);
@@ -150,12 +161,13 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void LuoKalakukko(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject kalakukko = PhysicsObject.CreateStaticObject(102, 48); //lisätään uusi physics object joka on myös staattinen, jotta kalakukot saadaan pysymään paikallaan
+        LuoKarttaObjekti(kalakukko, paikka);
         kalakukko.IgnoresCollisionResponse = true;
-        kalakukko.Position = paikka;
         kalakukko.Image = LoadImage("kalakukko"); //kalakukon kuva tiedosto
         kalakukko.Tag = "kalakukko";
         Add(kalakukko);
     }
+    
     
     /// <summary>
     /// Luodaan piikki jota pitää varoa
@@ -166,13 +178,14 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void LuoPiikki(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject piikki = PhysicsObject.CreateStaticObject(leveys, korkeus); //lisätään uusi physics object joka on myös staattinen, jotta piikit saadaan pysymään paikallaan
+        LuoKarttaObjekti(piikki, paikka);
         piikki.Shape = Shape.Triangle;
         piikki.Color = Black;
         piikki.IgnoresCollisionResponse = false;
-        piikki.Position = paikka;
         piikki.Tag = "piikki";
         Add(piikki);
     }
+    
     
     /// <summary>
     /// Luodaan taso joita saadaan tehtyä maa ja tasot joilta hypitään toisille tasoille
@@ -183,24 +196,24 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
     private void LuoTaso(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject taso = PhysicsObject.CreateStaticObject(leveys, korkeus);
-        taso.Position = paikka;
+        LuoKarttaObjekti(taso, paikka);
         taso.Color = Green;
         Add(taso);
     }
     
     
     /// <summary>
-    /// Luodaan taso joita saadaan tehtyä maa ja tasot joilta hypitään toisille tasoille
+    /// Luodaan näkymätön seinä, jonka läpi ei päästä, jotta pelaaja pysyy kentän sisässä
     /// </summary>
     /// <param name="paikka">Tason paikka</param>
     /// <param name="leveys">Tason leveys</param>
     /// <param name="korkeus">Tason korkeus</param>
     private void LuoSivuSeina(Vector paikka, double leveys, double korkeus)
     {
-        PhysicsObject taso = PhysicsObject.CreateStaticObject(leveys, korkeus);
-        taso.Position = paikka;
-        taso.IsVisible = false;
-        Add(taso);
+        PhysicsObject sivuSeina = PhysicsObject.CreateStaticObject(leveys, korkeus);
+        LuoKarttaObjekti(sivuSeina, paikka);
+        sivuSeina.IsVisible = false;
+        Add(sivuSeina);
     }
     
     
@@ -220,6 +233,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         Add(maali);
     }
 
+    
     /// <summary>
     /// Luodaan maali johon törmätessä lopetetaan peli
     /// </summary>
@@ -235,6 +249,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         viimeinenMaali.Tag = "viimeinenMaali";
         Add(viimeinenMaali);
     }
+    
     
     /// <summary>
     /// Poistetaan vaakuna kun siihen osutaan ja kasvatetaan pistemäärää
@@ -263,6 +278,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         }
     } 
     
+    
     /// <summary>
     /// Vähennetään hahmon elämäpisteitä ja lopetetaan peli, mikäli elämäpisteett loppuvat
     /// </summary>
@@ -276,6 +292,8 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
             Havisit();
         }
     }
+    
+    
     /// <summary>
     /// Kasvatetaan muuttujan _KentanIndeksi arvoa jotta päästään seuraavaan tasoon
     /// </summary>
@@ -289,6 +307,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         Kentta();
     }
 
+    
     /// <summary>
     /// Kun on päästy viimeisen tason maaliin, niin pysäytetään peli ja kerrotaan pelaajan voittaneen peli
     /// </summary>
@@ -319,6 +338,7 @@ public class Seikkailu_Pohjois_savossa : PhysicsGame
         pistenaytto.Title = "Pisteet: ";
         Add(pistenaytto);
     }
+    
     
     /// <summary>
     /// Laskuri joka näyttää paljonko pelaajalla on elämäpisteitä
